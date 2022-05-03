@@ -10,7 +10,7 @@ app.use(express.json());
 
 // root app
 app.get("/", (req, res) => {
-  res.send("Running Autovio Server");
+  res.send("Running Auto-vio Server for heroku");
 });
 
 app.listen(port, () => {
