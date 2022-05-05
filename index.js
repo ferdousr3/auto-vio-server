@@ -31,12 +31,44 @@ async function run() {
       res.send(product);
     });
 
+    //Get single product: Send data to client
+    app.get("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const product = await productCollection.findOne(query);
+      res.send(product);
+    });
+
     //POST product: receive data from client
     app.post("/product", async (req, res) => {
       const newProduct = req.body;
       const result = await productCollection.insertOne(newProduct);
       res.send(result);
     });
+
+    //update product: receive data from client
+    app.put('/product/:id', async(req,res)=>{
+      const id = req.params.id
+      const updatedProduct = req.body
+      const filter = {_id:ObjectId(id)}
+      const options = {upsert: true}
+      const updatedDoc = {
+        $set:{
+        img: updatedProduct.img,
+        carouselImg: updatedProduct.carouselImg,
+        price: updatedProduct.price,
+        supplier: updatedProduct.supplier,
+        name: updatedProduct.name,
+        description: updatedProduct.description,
+        quantity: updatedProduct.quantity}
+      }
+      const result = await productCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      )
+      res.send(result)
+    })
 
     //Delete product : delete product from database and client
     app.delete("/product/:id", async (req, res) => {
