@@ -1,5 +1,6 @@
 const express = require("express");
 const { MongoClient, ServerApiVersion } = require("mongodb");
+const ObjectId = require("mongodb").ObjectId;
 const cors = require("cors");
 require("dotenv").config();
 const app = express();
@@ -34,6 +35,14 @@ async function run() {
     app.post("/product", async (req, res) => {
       const newProduct = req.body;
       const result = await productCollection.insertOne(newProduct);
+      res.send(result);
+    });
+
+    //Delete product : delete product from database and client
+    app.delete("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await productCollection.deleteOne(query);
       res.send(result);
     });
   } finally {
