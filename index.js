@@ -32,6 +32,14 @@ async function run() {
       const product = await cursor.toArray();
       res.send(product);
     });
+    //Get product: by search user email Send data to client
+    app.get("/myproduct", async (req, res) => {
+      const email = req.query.email
+      const query = {email:email};
+      const cursor = productCollection.find(query);
+      const myProduct = await cursor.toArray();
+      res.send(myProduct);
+    });
 
     //Get single product: Send data to client
     app.get("/product/:id", async (req, res) => {
@@ -49,11 +57,11 @@ async function run() {
     });
 
     //update product: receive data from client
-    app.put('/product/:id', async(req,res)=>{
-      const id = req.params.id
-      const updatedProduct = req.body
-      const filter = {_id:ObjectId(id)}
-      const options = {upsert: true}
+    app.put("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedProduct = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
       const updatedDoc = {
         $set: {
           email: updatedProduct.email,
@@ -70,9 +78,27 @@ async function run() {
         filter,
         updatedDoc,
         options
-      )
-      res.send(result)
-    })
+      );
+      res.send(result);
+    });
+    //replacement product: receive data from client
+    app.patch("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedProduct = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          quantity: updatedProduct.quantity,
+        },
+      };
+      const result = await productCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
+    });
 
     //Delete product : delete product from database and client
     app.delete("/product/:id", async (req, res) => {
