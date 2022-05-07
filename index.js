@@ -87,7 +87,7 @@ run().catch(console.dir);
 
 // content api
 
-async function run() {
+async function content() {
   try {
     await client.connect();
     const productCollection = client.db("autoVio01").collection("content");
@@ -104,7 +104,7 @@ async function run() {
     // await client.close()
   }
 }
-run().catch(console.dir);
+content().catch(console.dir);
 
 // root app
 app.get("/", (req, res) => {
