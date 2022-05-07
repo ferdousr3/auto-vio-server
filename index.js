@@ -18,6 +18,8 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+// product api
+
 async function run() {
   try {
     await client.connect();
@@ -77,6 +79,27 @@ async function run() {
       const result = await productCollection.deleteOne(query);
       res.send(result);
     });
+  } finally {
+    // await client.close()
+  }
+}
+run().catch(console.dir);
+
+// content api
+
+async function run() {
+  try {
+    await client.connect();
+    const productCollection = client.db("autoVio01").collection("content");
+
+    //Get product: Send data to client
+    app.get("/content", async (req, res) => {
+      const query = {};
+      const cursor = productCollection.find(query);
+      const product = await cursor.toArray();
+      res.send(product);
+    });
+
   } finally {
     // await client.close()
   }
