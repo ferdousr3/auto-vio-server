@@ -1,6 +1,7 @@
 const express = require("express");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const ObjectId = require("mongodb").ObjectId;
+const jwt = require("jsonwebtoken");
 const cors = require("cors");
 require("dotenv").config();
 const app = express();
@@ -9,6 +10,24 @@ const port = process.env.PORT || 5000;
 // middleware
 app.use(cors());
 app.use(express.json());
+
+//auth verify
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: "Unauthorize Access" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden Access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+
+  
+}
 
 // mongoDB
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@autovio.8ysza.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -25,6 +44,16 @@ async function run() {
     await client.connect();
     const productCollection = client.db("autoVio01").collection("products");
 
+    //auth
+    app.post("/login", async (req, res) => {
+      const user = req.body;
+      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "12h",
+      });
+      res.send({ accessToken });
+      
+    });
+
     //Get product: Send data to client
     app.get("/product", async (req, res) => {
       const query = {};
@@ -33,12 +62,18 @@ async function run() {
       res.send(product);
     });
     //Get product: by search user email Send data to client
-    app.get("/myproduct", async (req, res) => {
-      const email = req.query.email
-      const query = {email:email};
-      const cursor = productCollection.find(query);
-      const myProduct = await cursor.toArray();
-      res.send(myProduct);
+    app.get("/myproduct", verifyJWT, async (req, res) => {
+      const decodedEmail = req.decoded.email;
+      const email = req.query.email;
+      if (email === decodedEmail) {
+        const query = { email: email };
+        const cursor = productCollection.find(query);
+        const myProduct = await cursor.toArray();
+        res.send(myProduct);
+      }
+      else{
+        res.status(403).send({ message: "Forbidden Access" });
+      }
     });
 
     //Get single product: Send data to client
@@ -127,7 +162,6 @@ async function content() {
       const product = await cursor.toArray();
       res.send(product);
     });
-
   } finally {
     // await client.close()
   }
