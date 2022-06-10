@@ -43,6 +43,7 @@ async function run() {
   try {
     await client.connect();
     const productCollection = client.db("autoVio01").collection("products");
+    const projectCollection = client.db("autoVio01").collection("projects");
 
     //auth
     app.post("/login", async (req, res) => {
@@ -51,9 +52,23 @@ async function run() {
         expiresIn: "12h",
       });
       res.send({ accessToken });
-      
     });
 
+    //Get single project: Send data to client
+    app.get("/project/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const product = await projectCollection.findOne(query);
+      res.send(product);
+    });
+
+    //Get Project: Send data to client
+    app.get("/project", async (req, res) => {
+      const query = {};
+      const cursor = projectCollection.find(query);
+      const product = await cursor.toArray();
+      res.send(product);
+    });
     //Get product: Send data to client
     app.get("/product", async (req, res) => {
       const query = {};
@@ -70,8 +85,7 @@ async function run() {
         const cursor = productCollection.find(query);
         const myProduct = await cursor.toArray();
         res.send(myProduct);
-      }
-      else{
+      } else {
         res.status(403).send({ message: "Forbidden Access" });
       }
     });
